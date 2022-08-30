@@ -32,7 +32,7 @@ device = torch.device('cuda')
 
 def run():
     torch.cuda.empty_cache()
-    df = pd.read_csv("/home/nmark/projects/cassava/data/sample_submission.csv")
+    df = pd.read_csv("/path/to/data/sample_submission.csv")
     
     transforms_valid = A.Compose([
         A.Resize(CFG.image_size, CFG.image_size),
@@ -40,11 +40,11 @@ def run():
         ToTensorV2()
     ])
             
-    dataset = TestDataset(df=df, root='/home/nmark/projects/cassava/data/test_images', transform=transforms_valid) 
+    dataset = TestDataset(df=df, root='/path/to/data/test_images', transform=transforms_valid) 
     test_loader = DataLoader(dataset=dataset, batch_size=1, shuffle=False, num_workers=8)
     
-    effnet_engine = InferenceEngine(Effnet(), glob.glob("/home/nmark/projects/cassava/weights/tf_effnet_b5_ns/*.pt")) 
-    resnext_engine = InferenceEngine(ResNext101(model_name='resnext101_32x8d'), glob.glob("/home/nmark/projects/cassava/weights/resnext101_32x8d/*.pt"))
+    effnet_engine = InferenceEngine(Effnet(), glob.glob("/path/to/weights/weights/tf_effnet_b5_ns/*.pt")) 
+    resnext_engine = InferenceEngine(ResNext101(model_name='resnext101_32x8d'), glob.glob("/path/to//weights/resnext101_32x8d/*.pt"))
     
     class CassavaEnsembleEngine(EnsembleEngine):
         def build_transforms(self):

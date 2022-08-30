@@ -64,7 +64,7 @@ def run(cfg:CFG):
         class MyEngine(TrainEngine):
             def build_hooks(self) -> TrainHookList:
                 ret = super().build_hooks()
-                ret.append(EarlyStoppingHook(patience=11, checkpointer=Checkpointer(self.model, f"/home/nmark/projects/cassava/weights/{CFG.MODEL_NAME}/{fold_index}_fold_")))
+                ret.append(EarlyStoppingHook(patience=11, checkpointer=Checkpointer(self.model, f"path/to/weights/{CFG.MODEL_NAME}/{fold_index}_fold_")))
                 return ret
             
         engine = MyEngine(model=model, loss_fn=loss_fn, optimizer=optimizer, scheduler=scheduler)
