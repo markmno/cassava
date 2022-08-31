@@ -1,60 +1,73 @@
-from dataclasses import dataclass, field
-from typing import List, NamedTuple
-from src import engine
-from src.dataloader import TestDataset
-from src.engine.inference_engine import InferenceEngine, EnsembleEngine
-import torch
-import torch.nn as nn
-from src.model import Effnet, ResNext101
-import pandas as pd
-from rich import print
-import numpy as np
-from scipy.special import softmax
 import glob
-from torch.utils.data import DataLoader
+import os
+from dataclasses import dataclass
+
 import albumentations as A
+import pandas as pd
+import torch
 from albumentations.pytorch import ToTensorV2
+from scipy.special import softmax
+from torch.utils.data import DataLoader
 
-from src.tta import Composer, HFlip, Rotate, VFlip
+import src.tta as tta
+from src.dataloader import TestDataset
+from src.engine.inference_engine import EnsembleEngine, InferenceEngine
+from src.model import TimmModel
+from src.utils import seed_everything
 
-class Arch(NamedTuple):
-    model: nn.Module
-    weights: List[str]
 
 @dataclass
 class CFG:
-    models:List[Arch] = field(default_factory=list)
-    device = torch.device('cuda')
-    num_workers:int = 8
-    image_size:int = 512
+    models_names = ["tf_efficientnet_b5_ns", "resnext101_32x8d"]
+    device = torch.device("cuda")
+    test_image_root: str = "./data/test_images/"
+    csv_path: str = "./data/sample_submission.csv"
+    weights_path: str = "./weights/"
+    num_workers: int = 8
+    image_size: int = 512
+    seed: int = 27
 
-device = torch.device('cuda')
 
-def run():
-    torch.cuda.empty_cache()
-    df = pd.read_csv("/path/to/data/sample_submission.csv")
-    
-    transforms_valid = A.Compose([
-        A.Resize(CFG.image_size, CFG.image_size),
-        A.Normalize(),
-        ToTensorV2()
-    ])
-            
-    dataset = TestDataset(df=df, root='/path/to/data/test_images', transform=transforms_valid) 
-    test_loader = DataLoader(dataset=dataset, batch_size=1, shuffle=False, num_workers=8)
-    
-    effnet_engine = InferenceEngine(Effnet(), glob.glob("/path/to/weights/weights/tf_effnet_b5_ns/*.pt")) 
-    resnext_engine = InferenceEngine(ResNext101(model_name='resnext101_32x8d'), glob.glob("/path/to//weights/resnext101_32x8d/*.pt"))
-    
+def run(cfg: CFG):
+    seed_everything(cfg.seed)
+    df = pd.read_csv(cfg.csv_path)
+
+    transforms_valid = A.Compose(
+        [A.Resize(cfg.image_size, cfg.image_size), A.Normalize(), ToTensorV2()]
+    )
+
+    dataset = TestDataset(df=df, root=cfg.test_image_root, transform=transforms_valid)
+    test_loader = DataLoader(
+        dataset=dataset, batch_size=1, shuffle=False, num_workers=8
+    )
+
+    engine_list = [
+        InferenceEngine(
+            TimmModel(model_name),
+            glob.glob(os.path.join(CFG.weights_path, model_name, "*.pt")),
+            device=cfg.device,
+        )
+        for model_name in cfg.models_names
+    ]
+
     class CassavaEnsembleEngine(EnsembleEngine):
         def build_transforms(self):
-            return Composer(transforms_list=[VFlip(), HFlip(), Rotate(90), Rotate(180), Rotate(270)])
-    
-    engine = CassavaEnsembleEngine([effnet_engine, resnext_engine])
+            return tta.Composer(
+                transforms_list=[
+                    tta.VFlip(),
+                    tta.HFlip(),
+                    tta.Rotate(90),
+                    tta.Rotate(180),
+                    tta.Rotate(270),
+                ]
+            )
+
+    engine = CassavaEnsembleEngine(engine_list)
     engine.build(test_loader)
     engine.run()
-    df['label'] = softmax(engine.result).argmax(1)
-    df[['image_id', 'label']].to_csv("./"+'submission.csv', index=False)
-    
+    df["label"] = softmax(engine.result).argmax(1)
+    df[["image_id", "label"]].to_csv("./" + "submission.csv", index=False)
+
+
 if __name__ == "__main__":
-    run()
+    run(cfg=CFG())
