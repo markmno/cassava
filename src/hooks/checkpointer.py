@@ -10,9 +10,16 @@ from .base import TrainHook
 class EarlyStoppingError(Exception):
     pass
 
-
 class Checkpointer(TrainHook):
     def __init__(self, model: nn.Module, root: str, prefix: Optional[str]) -> None:
+        """
+        Hook that makes model checkpoints.
+
+        Args:
+            model (nn.Module): Pytorch Model
+            root (str): Path to saved models
+            prefix (Optional[str]): Saved checkpoint prefix 
+        """
         super().__init__()
         self.model = model
         self.path = self.make_path(root, prefix)
@@ -31,6 +38,13 @@ class Checkpointer(TrainHook):
 
 class EarlyStoppingHook(TrainHook):
     def __init__(self, patience: int, checkpointer: Checkpointer) -> None:
+        """
+        Early Stopping Hook
+
+        Args:
+            patience (int): Num of epochs before early stopping
+            checkpointer (Checkpointer): Checkpointer Class
+        """
         super().__init__()
         self.patience = patience
         self.checkpointer = checkpointer

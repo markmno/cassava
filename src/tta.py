@@ -8,11 +8,19 @@ import torchvision.transforms.functional as F
 class Transform(ABC):
     @abstractmethod
     def apply(self, x: torch.Tensor) -> torch.Tensor:
-        pass
+        """
+        Method called to apply selected augmentation
+        Args:
+            x (torch.Tensor): Input Image
+
+        Returns:
+            torch.Tensor: Augmented Image
+        """
 
 class Composer:
     def __init__(self, transforms_list: Optional[List[Transform]] = None) -> None:
-        """_summary_
+        """
+        Iterator Containing all selected augmentations. 
 
         Args:
             transforms_list (Optional[List[Transform]], optional): _description_. Defaults to None.
@@ -34,7 +42,7 @@ class Composer:
 
 
 class NoTransform(Transform):
-    """_summary_
+    """Empty transofrmation
 
     Args:
         Transform (_type_): _description_
@@ -44,17 +52,29 @@ class NoTransform(Transform):
 
 
 class HFlip(Transform):
+    """
+    Horizontal Flip
+    """
     def apply(self, x: torch.Tensor) -> torch.Tensor:
         return F.hflip(x)
 
 
 class VFlip(Transform):
+    """
+    Vertical Flip
+    """
     def apply(self, x: torch.Tensor) -> torch.Tensor:
         return F.vflip(x)
 
 
 class Rotate(Transform):
     def __init__(self, angle: Literal[90, 180, 270]) -> None:
+        """
+        Rotating Image
+
+        Args:
+            angle (Literal[90, 180, 270]): Angle on which image will be rotated
+        """
         super().__init__()
         self.angle = angle
 

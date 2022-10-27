@@ -4,51 +4,47 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from rich.traceback import install
-from src.utils import AverageMeter
 from torch.cuda.amp.autocast_mode import autocast
 from torch.cuda.amp.grad_scaler import GradScaler
 
+from src.utils import AverageMeter
+
 from ..hooks import LrSchedulerHook, TrainHookList, TrainProgressBarHook
-from ..hooks.progressbar_hook import EpochProgress, EvalStepProgress, TrainStepProgress
+from ..hooks.progressbar_hook import (EpochProgress, EvalStepProgress,
+                                      TrainStepProgress)
 from ..storage import Storage
 from .base import IEngine
-
 
 __all__ = ["TrainEngine"]
 
 scaler = GradScaler()
 
+
 class TrainEngine(IEngine):
-    """_summary_
-
-    Args:
-        IEngine (_type_): _description_
-    """
-
     def __init__(
         self,
         model: nn.Module,
         loss_fn: nn.Module,
         optimizer: optim.Optimizer,
         scheduler: optim.lr_scheduler._LRScheduler,
-        device:torch.device,
+        device: torch.device,
         eval_func: Optional[Callable[..., torch.Tensor]] = None,
     ) -> None:
-        """_summary_
+        """
+        Runs inference on your model with given weights
 
-        Args:
-            model (nn.Module): _description_
-            loss_fn (nn.Module): _description_
-            optimizer (optim.Optimizer): _description_
-            scheduler (_type_): _description_
-            eval_func (Optional[Callable[..., torch.Tensor]], optional): _description_. Defaults to None.
+        Example:
+        >>> engine = TrainEngine()
+        >>> engine.build(dataloader)
+        >>> engine.run()
         """
         self.device = device
         self.model = model.to(device)
         self.loss_fn = loss_fn.to(device)
         self.optimizer = optimizer
         self.scheduler = scheduler
-        self._eval_func = eval_func if eval_func is not None else loss_fn.to(device)
+        self._eval_func = eval_func if eval_func is not None else loss_fn.to(
+            device)
 
     def build(self, dataloader):
         self.storage = Storage()
@@ -109,11 +105,6 @@ class TrainEngine(IEngine):
         return loss
 
     def run(self, epochs: int):
-        """_summary_
-
-        Args:
-            epochs (int): _description_
-        """
         self.storage.put("epochs", epochs)
         self.storage.put("train_steps", len(self.dataloader.train))
         self.storage.put("eval_steps", len(self.dataloader.eval))
@@ -132,5 +123,4 @@ class TrainEngine(IEngine):
 
     @property
     def result(self) -> None:
-        """_summary_"""
         self.storage.get("best")

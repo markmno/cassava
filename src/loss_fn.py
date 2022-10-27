@@ -1,4 +1,5 @@
 from typing import Literal
+
 import torch
 import torch.nn as nn
 
@@ -12,6 +13,16 @@ class BiTemperedLogisticLoss(nn.Module):
         num_iters: int = 5,
         reduction: Literal["mean", "sum", "none"] = "mean",
     )->None:
+        """
+        Implementation of Bi-temepered Logistic Loss proposed in https://arxiv.org/abs/1906.03361
+        
+        Args:
+            t1 (float): Temperature 1
+            t2 (float): Temperature 2
+            label_smoothing (float): Label Smoothing
+            num_iters (int, optional): Number of interation to accumulate loss. Defaults to 5.
+            reduction (Literal[mean, sum;, none]): Loss reduction type. Defaults to "mean".
+        """
         super().__init__()
         self.t1 = t1
         self.t2 = t2

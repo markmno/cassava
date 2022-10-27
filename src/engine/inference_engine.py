@@ -5,13 +5,13 @@ import torch
 import torch.nn as nn
 
 from ..hooks import InferenceHookList, InferenceProgressBarHook
-from ..hooks.progressbar_hook import InferenceFoldProgress, InferenceStepProgress
+from ..hooks.progressbar_hook import (InferenceFoldProgress,
+                                      InferenceStepProgress)
 from ..storage import Storage
 from ..tta import Composer
 from .base import IEngine
 
 __all__ = ["InferenceEngine", "EnsembleEngine"]
-
 
 class InferenceEngine(IEngine):
     def __init__(
@@ -100,11 +100,12 @@ class EnsembleEngine(IEngine):
         inference_engines: List[InferenceEngine],
         reduction: Literal["mean", "sum"] = "sum",
     ) -> None:
-        """_summary_
-
+        """
+        Runs ensembling on choosen models 
+         
         Args:
-            inference_engines (List[InferenceEngine]): _description_
-            reduction (Literal[&#39;mean&#39;, &#39;sum&#39;], optional): _description_. Defaults to 'sum'.
+            inference_engines (List[InferenceEngine]): List of Engines
+            reduction (Literal[mean, sum], optional): Reduction mode. Defaults to 'sum'.
         """
         super().__init__()
         self.engines = inference_engines
@@ -134,10 +135,10 @@ class EnsembleEngine(IEngine):
             engine.build(self.dataloader)
 
     def build_transforms(self):
-        pass
+        "Build Augmentations"
 
     def build_hooks(self):
-        pass
+        "Build Hooks"
 
     def _build_reduction_func(self, reduction):
         if reduction == "mean":

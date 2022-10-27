@@ -10,7 +10,6 @@ def storage_factory(cfg=None):
     """
     Parse config file and create Storage object which have reserved slots for nessesary scalar values
     """
-
     slots: List[str] = ["metric", "train_loss", "best_metric"]
     if cfg is not None:
         slots: List[str] = cfg.parse_slots()
@@ -40,13 +39,12 @@ class ValueDict:
 
 
 class Storage:
-    """_summary_"""
-
     def __init__(self, value_dict=None) -> None:
-        """_summary_
+        """
+        Class to store training/inference data/
 
         Args:
-            value_dict (_type_, optional): _description_. Defaults to None.
+            value_dict (_type_, optional): Dict of default values. Defaults to None.
         """
         self._dict = value_dict if value_dict is not None else ValueDict()
 
@@ -71,69 +69,28 @@ class Storage:
         self._dict[name] = None
 
     def put(self, name: str, value: Any) -> None:
-        """_summary_
-
-        Args:
-            name (str): _description_
-            value (Any): _description_
+        """
+        Method to put value in a Storage
         """
         self._dict[name] = value
 
     def get(self, name: str) -> Any:
-        """_summary_
-
-        Args:
-            name (str): _description_
-
-        Returns:
-            Any: _description_
         """
-        # if isinstance(self._dict[name], list):
-        #     return np.mean(self._dict[name])
+        Method to get a value by a name.
+        """
         return self._dict[name]
 
-    def find_best(self, name: str) -> Any:
-        """_summary_
-
-        Args:
-            name (str): _description_
-
-        Returns:
-            Any: _description_
-        """
-        pass
-
     def __repr__(self) -> str:
-        """_summary_
-
-        Returns:
-            str: _description_
-        """
         return self._dict.__repr__()
 
     @property
     def metric(self):
-        """_summary_
-
-        Returns:
-            _type_: _description_
-        """
         return {"metric": self._dict.metric}
 
     @property
     def train_loss(self):
-        """_summary_
-
-        Returns:
-            _type_: _description_
-        """
         return {"loss": self._dict.train_loss}
 
     @property
     def best_metric(self):
-        """_summary_
-
-        Returns:
-            _type_: _description_
-        """
         return {"best": self._dict.best_metric}

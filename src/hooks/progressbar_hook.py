@@ -10,7 +10,6 @@ from .base import InferenceHook, InferenceHookList, TrainHook, TrainHookList
 
 class MetricsTextColumn(ProgressColumn):
     """A column containing text."""
-
     def __init__(self):
         self._tasks = {}
         self._current_task_id = 0
@@ -18,9 +17,6 @@ class MetricsTextColumn(ProgressColumn):
         super().__init__()
 
     def update(self, metrics):
-        # Called when metrics are ready to be rendered.
-        # This is to prevent render from causing deadlock issues by requesting metrics
-        # in separate threads.
         self._metrics = metrics
 
     def render(self, task) -> Text:
@@ -31,7 +27,6 @@ class MetricsTextColumn(ProgressColumn):
             self._current_task_id = task.id
         if task.id != self._current_task_id:
             return self._tasks[task.id]
-
         text = ""
         for k, v in self._metrics.items():
             text += f"| {k}: {v} "
