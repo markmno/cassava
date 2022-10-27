@@ -4,8 +4,8 @@ Bronze medal solution to the [Cassava Leaf Disease Classification](https://www.k
 
 ## Summary
 
-## Project structure
+The main features that was used in my solution to this competition was:
+- Bi-Tempered Logisic Loss
+- Ensembling multiple CNN networks
 
-## Working with the repo
-
-### Environment
+In this repo I prettify my solution on Cassava Leaf Classification Competition by refacturing the code and adding visualisation of training using rich library
